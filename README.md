@@ -4,7 +4,7 @@ This script runs on a Mac and shows the founder a short digest every 30 minutes 
 
 ## Run once (debug / validate)
 ```bash
-cd /Users/narayanprasadsharma/Desktop/Dev/heartbeat
+cd <project-directory>
 ./venv/bin/python main.py --once
 ```
 
@@ -34,7 +34,7 @@ For assessment/demo, keep `HEARTBEAT_LLM_PROVIDER=mock` (default).
 
 To enable real Claude calls:
 ```bash
-cd /Users/narayanprasadsharma/Desktop/Dev/heartbeat
+cd <project-directory>
 export ANTHROPIC_API_KEY="YOUR_KEY"
 export HEARTBEAT_LLM_PROVIDER="claude"
 ./venv/bin/python main.py --once

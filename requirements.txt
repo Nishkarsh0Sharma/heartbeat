@@ -1,0 +1,4 @@
+schedule==1.2.2
+anthropic
+requests
+

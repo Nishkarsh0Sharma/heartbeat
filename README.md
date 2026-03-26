@@ -1,0 +1,52 @@
+# Heartbeat (Client Digest)
+
+This script runs on a Mac and shows the founder a short digest every 30 minutes while the laptop is active.
+
+## Run once (debug / validate)
+```bash
+cd /Users/narayanprasadsharma/Desktop/Dev/heartbeat
+./venv/bin/python main.py --once
+```
+
+You should see `===== DIGEST =====` printed in the terminal. A macOS notification is also attempted.
+
+## Run continuously
+```bash
+HEARTBEAT_INTERVAL_MINUTES=30 ./venv/bin/python main.py
+```
+
+## Environment variables
+- `HEARTBEAT_INTERVAL_MINUTES` (default `30`)
+- `HEARTBEAT_REQUIRE_ACTIVE` (default `false`)
+- `HEARTBEAT_IDLE_THRESHOLD_SECONDS` (default `60`)
+- `HEARTBEAT_NOTIFICATION_ENABLED` (default `true`)
+- `HEARTBEAT_LLM_PROVIDER` (default `mock`, set to `claude` to enable Claude)
+- `CLAUDE_MODEL` (default `claude-3-5-sonnet-latest`)
+- `LLM_TEMPERATURE` (default `0.2`)
+
+## How data is gathered
+Collectors (`slack_collector`, `email_collector`, `jira_collector`, `github_collector`, `tasks_collector`) have:
+- dummy fallback (works without credentials)
+- real API mode (enabled by environment variables listed below)
+
+## Enable Claude (optional)
+For assessment/demo, keep `HEARTBEAT_LLM_PROVIDER=mock` (default).
+
+To enable real Claude calls:
+```bash
+cd /Users/narayanprasadsharma/Desktop/Dev/heartbeat
+export ANTHROPIC_API_KEY="YOUR_KEY"
+export HEARTBEAT_LLM_PROVIDER="claude"
+./venv/bin/python main.py --once
+```
+
+## Enable Real API fetching (optional)
+Your demo works with dummy data even without any credentials.
+
+When you set the following environment variables, collectors will fetch real recent items instead of dummy.
+
+- Slack: `SLACK_BOT_TOKEN` (or `SLACK_TOKEN`), optionally `SLACK_CHANNEL_IDS` (comma-separated), optionally `SLACK_HISTORY_LIMIT`
+- Jira: `JIRA_BASE_URL`, `JIRA_EMAIL` (or `JIRA_USER`), `JIRA_API_TOKEN`, optionally `JIRA_PROJECT_KEYS` and `JIRA_JQL`
+- GitHub: `GITHUB_TOKEN`, `GITHUB_USERNAME`, optionally `GITHUB_REPOS` (comma-separated `owner/repo`)
+- Email (IMAP): `IMAP_HOST`, `IMAP_USER`, `IMAP_PASS`, optionally `IMAP_MAILBOX`, `IMAP_MAX_MESSAGES`
+

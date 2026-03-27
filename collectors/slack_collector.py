@@ -39,6 +39,24 @@ def _iso_now(ts: float) -> str:
     return _dt.datetime.fromtimestamp(ts).astimezone().isoformat(timespec="minutes")
 
 
+def _is_noise_message(text: str) -> bool:
+    lowered = text.lower()
+    return any(
+        phrase in lowered
+        for phrase in [
+            "has joined the channel",
+            "has left the channel",
+            "set the channel topic",
+            "set the channel purpose",
+        ]
+    )
+
+
+def _split_message_blocks(text: str) -> List[str]:
+    parts = [part.strip() for part in text.split("\n\n")]
+    return [part for part in parts if part]
+
+
 def fetch_messages(lookback_minutes: float = 30.0) -> List[Dict[str, Any]]:
     """
     Real Slack fetching (when SLACK_BOT_TOKEN/SLACK_TOKEN is set), otherwise dummy.
@@ -116,19 +134,22 @@ def fetch_messages(lookback_minutes: float = 30.0) -> List[Dict[str, Any]]:
                 text = (m.get("text") or "").strip()
                 if not text:
                     continue
+                if _is_noise_message(text):
+                    continue
 
                 ts_raw = m.get("ts")
                 ts_val = float(ts_raw) if ts_raw else since_ts
 
-                items.append(
-                    {
-                        "source": "slack",
-                        "client": channel_name,
-                        "message": text,
-                        "time": _iso_now(ts_val),
-                        # Slack ts links are a bit more involved; keep url optional.
-                    }
-                )
+                for part in _split_message_blocks(text):
+                    items.append(
+                        {
+                            "source": "slack",
+                            "client": channel_name,
+                            "message": part,
+                            "time": _iso_now(ts_val),
+                            # Slack ts links are a bit more involved; keep url optional.
+                        }
+                    )
 
         return items if items else _status_message("Slack connected, but no recent messages matched the current window.")
     except Exception as exc:

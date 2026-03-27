@@ -8,6 +8,7 @@ def classify(messages):
             kw in text
             for kw in [
                 "asap",
+                "important",
                 "urgent",
                 "blocked",
                 "blocker",

@@ -4,6 +4,8 @@ import datetime as _dt
 import os
 from typing import Any, Dict, List, Optional
 
+from config import getenv_first
+
 
 def _dummy_messages() -> List[Dict[str, Any]]:
     return [
@@ -22,6 +24,17 @@ def _dummy_messages() -> List[Dict[str, Any]]:
     ]
 
 
+def _status_message(message: str) -> List[Dict[str, Any]]:
+    return [
+        {
+            "source": "slack",
+            "client": "Slack",
+            "message": message,
+            "time": "recent",
+        }
+    ]
+
+
 def _iso_now(ts: float) -> str:
     return _dt.datetime.fromtimestamp(ts).astimezone().isoformat(timespec="minutes")
 
@@ -33,7 +46,7 @@ def fetch_messages(lookback_minutes: float = 30.0) -> List[Dict[str, Any]]:
     Normalized output fields:
       - source, client, message, time, url(optional)
     """
-    token = (os.getenv("SLACK_BOT_TOKEN") or os.getenv("SLACK_TOKEN") or "").strip()
+    token = getenv_first("SLACK_BOT_TOKEN", "SLACK_TOKEN")
     if not token:
         return _dummy_messages()
 
@@ -69,8 +82,15 @@ def fetch_messages(lookback_minutes: float = 30.0) -> List[Dict[str, Any]]:
             list_types = os.getenv("SLACK_FETCH_TYPES", "public_channel,private_channel,im")
             res = slack_api("conversations.list", {"limit": list_limit, "types": list_types})
             if not res.get("ok"):
-                return _dummy_messages()
+                error = res.get("error") or "unknown_error"
+                return _status_message(
+                    f"Slack connected, but conversation history could not be listed ({error}). "
+                    "Add channel IDs or update app scopes."
+                )
             channels = res.get("channels", [])[:list_limit]
+
+        if not channels:
+            return _status_message("Slack connected, but no accessible channels were found for this bot.")
 
         items: List[Dict[str, Any]] = []
         history_limit = int(os.getenv("SLACK_HISTORY_LIMIT", "50"))
@@ -110,7 +130,7 @@ def fetch_messages(lookback_minutes: float = 30.0) -> List[Dict[str, Any]]:
                     }
                 )
 
-        return items if items else _dummy_messages()
-    except Exception:
+        return items if items else _status_message("Slack connected, but no recent messages matched the current window.")
+    except Exception as exc:
         # Don't fail the whole heartbeat when API is misconfigured.
-        return _dummy_messages()
+        return _status_message(f"Slack connected, but fetching recent messages failed ({type(exc).__name__}).")

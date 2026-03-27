@@ -7,6 +7,8 @@ import os
 from email.header import decode_header
 from typing import Any, Dict, List, Optional, Tuple
 
+from config import getenv_first
+
 
 def _dummy_messages() -> List[Dict[str, Any]]:
     return [
@@ -65,9 +67,14 @@ def fetch_messages(lookback_minutes: float = 30.0) -> List[Dict[str, Any]]:
     """
     Real Email fetching via IMAP (when IMAP_* creds are set), otherwise dummy.
     """
-    host = os.getenv("IMAP_HOST", "").strip()
-    user = os.getenv("IMAP_USER", "").strip()
-    password = os.getenv("IMAP_PASS", "").strip()
+    host = getenv_first("IMAP_HOST", "GMAIL_IMAP_HOST")
+    user = getenv_first("IMAP_USER", "IMAP_EMAIL", "GMAIL_USER", "GMAIL_EMAIL")
+    password = getenv_first("IMAP_PASS", "IMAP_PASSWORD", "GMAIL_APP_PASSWORD")
+
+    # Convenience defaults for Gmail app-password setups.
+    if not host and user and password and user.lower().endswith("@gmail.com"):
+        host = "imap.gmail.com"
+
     if not host or not user or not password:
         return _dummy_messages()
 
@@ -152,4 +159,3 @@ def fetch_messages(lookback_minutes: float = 30.0) -> List[Dict[str, Any]]:
         return items if items else _dummy_messages()
     except Exception:
         return _dummy_messages()
-

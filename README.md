@@ -24,6 +24,14 @@ HEARTBEAT_INTERVAL_MINUTES=30 ./venv/bin/python main.py
 - `CLAUDE_MODEL` (default `claude-3-5-sonnet-latest`)
 - `LLM_TEMPERATURE` (default `0.2`)
 
+Credential aliases supported:
+- Claude key: `ANTHROPIC_API_KEY` or `CLAUDE_API_KEY`
+- GitHub token: `GITHUB_TOKEN` or `GH_TOKEN` or `GITHUB_PAT`
+- GitHub user: `GITHUB_USERNAME` or `GITHUB_USER`
+- IMAP user: `IMAP_USER` or `IMAP_EMAIL` or `GMAIL_USER` or `GMAIL_EMAIL`
+- IMAP password: `IMAP_PASS` or `IMAP_PASSWORD` or `GMAIL_APP_PASSWORD`
+- IMAP host: `IMAP_HOST` or `GMAIL_IMAP_HOST` (auto-defaults to `imap.gmail.com` for `@gmail.com`)
+
 ## How data is gathered
 Collectors (`slack_collector`, `email_collector`, `jira_collector`, `github_collector`, `tasks_collector`) have:
 - dummy fallback (works without credentials)
@@ -50,3 +58,6 @@ When you set the following environment variables, collectors will fetch real rec
 - GitHub: `GITHUB_TOKEN`, `GITHUB_USERNAME`, optionally `GITHUB_REPOS` (comma-separated `owner/repo`)
 - Email (IMAP): `IMAP_HOST`, `IMAP_USER`, `IMAP_PASS`, optionally `IMAP_MAILBOX`, `IMAP_MAX_MESSAGES`
 
+## Security note
+- Never commit real tokens/passwords to git.
+- If any token was exposed in chat/screenshots, rotate it immediately in provider settings.

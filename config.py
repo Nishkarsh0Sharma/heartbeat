@@ -1,4 +1,18 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+def getenv_first(*names: str, default: str = "") -> str:
+    """
+    Return the first non-empty environment variable among `names`.
+    """
+    for name in names:
+        value = os.getenv(name, "").strip()
+        if value:
+            return value
+    return default
 
 # How often to run the heartbeat (minutes).
 HEARTBEAT_INTERVAL_MINUTES = float(os.getenv("HEARTBEAT_INTERVAL_MINUTES", "30"))
@@ -33,4 +47,3 @@ NOTIFICATION_MAX_CHARS = int(os.getenv("NOTIFICATION_MAX_CHARS", "240"))
 HEARTBEAT_LLM_PROVIDER = os.getenv("HEARTBEAT_LLM_PROVIDER", "mock").strip().lower()
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-3-5-sonnet-latest")
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.2"))
-

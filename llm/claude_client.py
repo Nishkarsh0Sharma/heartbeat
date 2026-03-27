@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import json
-import os
 from typing import Any
 
-from config import CLAUDE_MODEL, LLM_TEMPERATURE
+from config import CLAUDE_MODEL, LLM_TEMPERATURE, getenv_first
 
 
 def build_urgent_info_from_claude(
@@ -19,7 +18,7 @@ def build_urgent_info_from_claude(
     """
     from anthropic import Anthropic
 
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    api_key = getenv_first("ANTHROPIC_API_KEY", "CLAUDE_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY is required for claude mode")
 
@@ -81,4 +80,3 @@ def build_urgent_info_from_claude(
         for i in info
     ]
     return urgent, info
-

@@ -4,6 +4,8 @@ import datetime as _dt
 import os
 from typing import Any, Dict, List, Optional
 
+from config import getenv_first
+
 
 def _dummy_messages() -> List[Dict[str, Any]]:
     return [
@@ -22,6 +24,17 @@ def _dummy_messages() -> List[Dict[str, Any]]:
     ]
 
 
+def _status_message(message: str) -> List[Dict[str, Any]]:
+    return [
+        {
+            "source": "github",
+            "client": "GitHub",
+            "message": message,
+            "time": "recent",
+        }
+    ]
+
+
 def _iso_utc(dt: _dt.datetime) -> str:
     return dt.astimezone(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -30,8 +43,8 @@ def fetch_messages(lookback_minutes: float = 30.0) -> List[Dict[str, Any]]:
     """
     Real GitHub fetching via REST Search API (when GITHUB_* creds are set), otherwise dummy.
     """
-    token = os.getenv("GITHUB_TOKEN", "").strip()
-    username = os.getenv("GITHUB_USERNAME", "").strip()
+    token = getenv_first("GITHUB_TOKEN", "GH_TOKEN", "GITHUB_PAT")
+    username = getenv_first("GITHUB_USERNAME", "GITHUB_USER")
     if not token or not username:
         return _dummy_messages()
 
@@ -91,7 +104,8 @@ def fetch_messages(lookback_minutes: float = 30.0) -> List[Dict[str, Any]]:
                 }
             )
 
-        return items if items else _dummy_messages()
-    except Exception:
-        return _dummy_messages()
-
+        return items if items else _status_message(
+            "GitHub connected, but no open issues or PRs matched the current filters."
+        )
+    except Exception as exc:
+        return _status_message(f"GitHub connected, but fetching recent work failed ({type(exc).__name__}).")
